@@ -17,12 +17,6 @@ def get_board_no(url):
             return match.group(1)
     return None
 
-# 하이퍼링크 내부 다운 받을 파일 번호 가져오기
-import requests
-from bs4 import BeautifulSoup
-import re
-
-
 def get_file_id(new_url):
     try:
         # HTTP 요청
