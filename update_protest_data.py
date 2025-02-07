@@ -8,12 +8,26 @@ from datetime import datetime, timedelta
 # ✅ PDF 다운로드 관련 함수
 def get_board_no(url):
     """게시판에서 최신 파일 ID 가져오기"""
+    find_list_size = 3
     response = requests.get(url)
+
     if response.status_code == 200:
         soup = BeautifulSoup(response.text, 'html.parser')
-        title = soup.select_one('#subContents > div > div.inContent > table > tbody > tr:nth-child(1) > td.subject > a')
-        match = re.search(r"goBoardView\(.+,'View','(\d+)'\)", str(title))
-        return match.group(1) if match else None
+        tomorrow_date = (datetime.now() + timedelta(days=1)).strftime("%y%m%d")
+
+        # 게시판 리스트 중 상위 3개 중 내일 날짜인 게시글 체크
+        for i in range(1, find_list_size + 1):
+            title_value = f"#subContents > div > div.inContent > table > tbody > tr:nth-child({i}) > td.subject > a"
+            title = soup.select_one(title_value)
+            title_text = title.text.strip()
+
+            print("title : ",title_text)
+            print(tomorrow_date)
+            
+            if str(tomorrow_date) in str(title_text):
+                match = re.search(r"goBoardView\(.+,'View','(\d+)'\)", str(title))
+                return match.group(1)
+
     return None
 
 def get_file_id(new_url):
