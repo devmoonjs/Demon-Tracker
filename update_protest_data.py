@@ -13,8 +13,8 @@ def get_board_no(url):
 
     if response.status_code == 200:
         soup = BeautifulSoup(response.text, 'html.parser')
-        # tomorrow_date = (datetime.now() + timedelta(days=1)).strftime("%y%m%d")
-        tomorrow_date = (datetime.now()).strftime("%y%m%d")
+        tomorrow_date = (datetime.now() + timedelta(days=1)).strftime("%y%m%d")
+        # tomorrow_date = (datetime.now()).strftime("%y%m%d")
 
         # 게시판 리스트 중 상위 3개 중 내일 날짜인 게시글 체크
         for i in range(1, find_list_size + 1):
@@ -49,8 +49,8 @@ def get_file_id(new_url):
     extracted_day = re.search(r'(\d+)', today_text).group(1) if re.search(r'(\d+)', today_text) else None
     file_id = re.search(r"attachfileDownload\('.+','(\d+)'\)", str(link)).group(1) if link else None
 
-    # tomorrow_date = (datetime.now() + timedelta(days=1)).strftime("%y%m%d")
-    tomorrow_date = (datetime.now()).strftime("%y%m%d")
+    tomorrow_date = (datetime.now() + timedelta(days=1)).strftime("%y%m%d")
+    # tomorrow_date = (datetime.now()).strftime("%y%m%d")
     return (file_id, extracted_day) if extracted_day == tomorrow_date else (None, None)
 
 def download_file(file_id, file_name):
