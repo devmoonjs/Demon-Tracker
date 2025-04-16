@@ -8,18 +8,25 @@ from datetime import datetime, timedelta
 # ✅ PDF 다운로드 관련 함수
 def get_board_no(url):
     """게시판에서 최신 파일 ID 가져오기"""
-    find_list_size = 3
+    find_list_size = 5
     response = requests.get(url)
 
     if response.status_code == 200:
         soup = BeautifulSoup(response.text, 'html.parser')
         tomorrow_date = (datetime.now() + timedelta(days=1)).strftime("%y%m%d")
+        #tomorrow_date = (datetime.now()).strftime("%y%m%d")
 
         # 게시판 리스트 중 상위 3개 중 내일 날짜인 게시글 체크
         for i in range(1, find_list_size + 1):
             title_value = f"#subContents > div > div.inContent > table > tbody > tr:nth-child({i}) > td.subject > a"
             title = soup.select_one(title_value)
             title_text = title.text.strip()
+            title_text = re.findall(r'\d+', title_text)
+            title_text = title_text[0]
+            
+            if len(title_text) > 6 and title_text[4] == '0':
+                title_text = title_text[0:4] + title_text[5:]
+
 
             print("title : ",title_text)
             print(tomorrow_date)
@@ -43,6 +50,7 @@ def get_file_id(new_url):
     file_id = re.search(r"attachfileDownload\('.+','(\d+)'\)", str(link)).group(1) if link else None
 
     tomorrow_date = (datetime.now() + timedelta(days=1)).strftime("%y%m%d")
+    #tomorrow_date = (datetime.now()).strftime("%y%m%d")
     return (file_id, extracted_day) if extracted_day == tomorrow_date else (None, None)
 
 def download_file(file_id, file_name):
@@ -62,9 +70,10 @@ def extract_protest_schedule(pdf_path):
     schedules = []
     with pdfplumber.open(pdf_path) as pdf:
         text = "\n".join([page.extract_text() for page in pdf.pages if page.extract_text()])
-    
-    pattern = re.compile(r"(.+?)\n(\d{1,2}:\d{2}~\d{1,2}:\d{1,2})\s+([\d,]+)\s+(.+?)\n<(.+?)>", re.MULTILINE)
+    print(f"text : {text}")
+    pattern = re.compile(r"(.+?)\n(\d{1,2}:\d{2}~(?:\d{1,2}:\d{2})?)\s+([\d,]+)명\s+(.+?)\n<(.+?)>", re.MULTILINE)
     for match in pattern.findall(text):
+        print(f"match : {match}")
         location, time_range, expected_people, police_department, region = match
         schedules.append({
             "시간": time_range,
@@ -86,7 +95,8 @@ def main():
 
     new_url = f"{base_url}?View&uQ=&pageST=SUBJECT&pageSV=&imsi=imsi&page=1&pageSC=SORT_ORDER&pageSO=DESC&dmlType=&boardNo={board_no}&returnUrl=https://www.smpa.go.kr:443/user/nd54882.do"
     file_id, file_name = get_file_id(new_url)
-    
+    print(f"file_name : {file_name}")
+
     if not file_id:
         print("❌ PDF 파일 ID 가져오기 실패")
         return
