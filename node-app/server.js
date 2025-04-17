@@ -51,7 +51,8 @@ const geocodeLocation = async (location) => {
 
 // 🔹 가장 최신 CSV 파일 가져오기
 const getLatestCSVFile = () => {
-    const dataDir = path.join(__dirname, '..', 'data');
+    // const dataDir = path.join(__dirname, '..', 'data');
+    const dataDir = '/app/data';
     const files = fs.readdirSync(dataDir).filter(file => file.endsWith('.csv'));
     if (files.length === 0) return null;
 
@@ -68,7 +69,9 @@ app.get('/api/protest-data', async (req, res) => {
     }
 
     const protestData = [];
-    const filePath = path.join(__dirname, '..', 'data', latestCSV);
+    // const filePath = path.join(__dirname, '..', 'data', latestCSV);
+    const filePath = path.join(process.cwd(), 'data', latestCSV);
+
 
     // ✅ CSV 파일을 읽어서 JSON 변환
     fs.createReadStream(filePath)
