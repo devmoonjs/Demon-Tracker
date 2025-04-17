@@ -1,0 +1,68 @@
+name: Build and Deploy to EC2
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-push:
+    name: Build Docker image and Push to ECR
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Configure AWS
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-northeast-2
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Build Docker Image and Push
+        run: |
+          REGION="ap-northeast-2"
+          ECR_REPOSITORY="seewi"
+          IMAGE_TAG="latest"
+
+          docker build -t $ECR_REPOSITORY:$IMAGE_TAG .
+          docker tag $ECR_REPOSITORY:$IMAGE_TAG ${{ steps.login-ecr.outputs.registry }}/$ECR_REPOSITORY:$IMAGE_TAG
+          docker push ${{ steps.login-ecr.outputs.registry }}/$ECR_REPOSITORY:$IMAGE_TAG
+
+  deploy:
+      name: Deploy to EC2
+      runs-on: ubuntu-latest
+      needs: build-and-push
+
+      steps:
+        - name: Execute remote SSH commands on EC2
+          uses: appleboy/ssh-action@v0.1.6
+          with:
+            host: ${{ secrets.EC2_HOST }}
+            username: ${{ secrets.EC2.USER }}
+            key: ${{ secrets.EC2_SSH_KEY }}
+            port: 22
+            script: |
+              REGION="ap-northeast-2"
+              AWS_ACCOUNT_ID=${{ secrets.AWS_ACCOUNT_ID }}
+
+              # ECR 로그인
+              aws ecr get-login-password --region $REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com
+              
+              # 배포 디렉토리로 이동
+              cd /home/ec2-user/app  # docker-compose.yml이 위치한 경로
+              
+              # 기존 컨테이너 종료
+              docker compose down || true
+
+              # 최신 이미지 pull
+              docker compose pull
+
+              # 컨테이너 재실행
+              docker compose up -d --remove-orphans
