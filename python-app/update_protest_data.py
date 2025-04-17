@@ -80,7 +80,7 @@ def extract_protest_schedule(pdf_path):
         r"(.+?)\n<(.+?)>",                 # 관할서 + 줄바꿈 + 지역
         re.MULTILINE
     )
-    
+
 
     for match in pattern.findall(text):
         print(f"match : {match}")
@@ -111,12 +111,15 @@ def main():
         print("❌ PDF 파일 ID 가져오기 실패")
         return
 
-    pdf_file = download_file(file_id, f"../data/{file_name}_protest.pdf")
+    # pdf_file = download_file(file_id, f"../data/{file_name}_protest.pdf")
+    pdf_file = download_file(file_id, f"./data/{file_name}_protest.pdf")
+
     
     if pdf_file:
         protest_list = extract_protest_schedule(pdf_file)
         df = pd.DataFrame(protest_list)
-        csv_path = f"../data/{file_name}_schedule.csv"
+        # csv_path = f"./data/{file_name}_schedule.csv"
+        csv_path = os.path.join(os.getcwd(), 'data', f"{file_name}_schedule.csv")
         df.to_csv(csv_path, index=False, encoding="utf-8-sig")
         print(f"✅ CSV 파일 저장 완료: {csv_path}")
 
