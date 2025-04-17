@@ -118,8 +118,8 @@ def main():
     if pdf_file:
         protest_list = extract_protest_schedule(pdf_file)
         df = pd.DataFrame(protest_list)
-        # csv_path = f"./data/{file_name}_schedule.csv"
-        csv_path = os.path.join(os.getcwd(), 'data', f"{file_name}_schedule.csv")
+        csv_path = f"./data/{file_name}_schedule.csv"
+        # csv_path = os.path.join(os.getcwd(), 'data', f"{file_name}_schedule.csv")
         df.to_csv(csv_path, index=False, encoding="utf-8-sig")
         print(f"✅ CSV 파일 저장 완료: {csv_path}")
 
