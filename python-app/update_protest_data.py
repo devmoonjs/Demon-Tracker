@@ -71,19 +71,26 @@ def extract_protest_schedule(pdf_path):
     with pdfplumber.open(pdf_path) as pdf:
         text = "\n".join([page.extract_text() for page in pdf.pages if page.extract_text()])
     print(f"text : {text}")
-    # pattern = re.compile(r"(.+?)\n(\d{1,2}:\d{2}~\d{1,2}:\d{1,2})\s+([\d,]+)\s+(.+?)\n<(.+?)>", re.MULTILINE)
 
-    pattern = re.compile(
-        r"(.+?)\n"                         # 장소
-        r"(\d{1,2}:\d{2}~\d{1,2}:\d{2})\s+"  # 시간
-        r"([\d,]+)명\s+"                    # 인원 (숫자 + '명')
-        r"(.+?)\n<(.+?)>",                 # 관할서 + 줄바꿈 + 지역
+    # 패턴 1: 일반 구조 (명 포함)
+    pattern1 = re.compile(
+        r"(.+?)\n"
+        r"(\d{1,2}:\d{2}~\d{1,2}:\d{2})\s+"
+        r"([\d,]+)명\s+"
+        r"(.+?)\n<(.+?)>",
         re.MULTILINE
     )
 
+    # 패턴 2: '명' 없이 줄바꿈 + 지역/관할서가 바뀐 경우
+    pattern2 = re.compile(
+        r"(.+?)\n"
+        r"(\d{1,2}:\d{2}~\d{1,2}:\d{2})\s*"
+        r"([\d,]+)\n"
+        r"<(.+?)>\s+(.+)",
+        re.MULTILINE
+    )
 
-    for match in pattern.findall(text):
-        print(f"match : {match}")
+    for match in pattern1.findall(text):
         location, time_range, expected_people, police_department, region = match
         schedules.append({
             "시간": time_range,
@@ -92,7 +99,39 @@ def extract_protest_schedule(pdf_path):
             "관할서": police_department.strip(),
             "지역": region.strip()
         })
+
+    for match in pattern2.findall(text):
+        location, time_range, expected_people, region, police_department = match
+        schedules.append({
+            "시간": time_range,
+            "장소": location.strip(),
+            "예상 인원": int(expected_people.replace(",", "")),
+            "관할서": police_department.strip(),
+            "지역": region.strip()
+        })
+
     return schedules
+
+    # pattern = re.compile(
+    #     r"(.+?)\n"                         # 장소
+    #     r"(\d{1,2}:\d{2}~\d{1,2}:\d{2})\s+"  # 시간
+    #     r"([\d,]+)명\s+"                    # 인원 (숫자 + '명')
+    #     r"(.+?)\n<(.+?)>",                 # 관할서 + 줄바꿈 + 지역
+    #     re.MULTILINE
+    # )
+
+
+    # for match in pattern.findall(text):
+    #     print(f"match : {match}")
+    #     location, time_range, expected_people, police_department, region = match
+    #     schedules.append({
+    #         "시간": time_range,
+    #         "장소": location.strip(),
+    #         "예상 인원": int(expected_people.replace(",", "")),
+    #         "관할서": police_department.strip(),
+    #         "지역": region.strip()
+    #     })
+    # return schedules
 
 # ✅ 실행 함수
 def main():
