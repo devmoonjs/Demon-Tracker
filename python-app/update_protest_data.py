@@ -72,6 +72,7 @@ def extract_protest_schedule(pdf_path):
         text = "\n".join([page.extract_text() for page in pdf.pages if page.extract_text()])
     print(f"text : {text}")
     # pattern = re.compile(r"(.+?)\n(\d{1,2}:\d{2}~\d{1,2}:\d{1,2})\s+([\d,]+)\s+(.+?)\n<(.+?)>", re.MULTILINE)
+
     pattern = re.compile(
         r"(.+?)\n"                         # 장소
         r"(\d{1,2}:\d{2}~\d{1,2}:\d{2})\s+"  # 시간
@@ -79,6 +80,7 @@ def extract_protest_schedule(pdf_path):
         r"(.+?)\n<(.+?)>",                 # 관할서 + 줄바꿈 + 지역
         re.MULTILINE
     )
+    
 
     for match in pattern.findall(text):
         print(f"match : {match}")
