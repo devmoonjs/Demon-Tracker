@@ -7,7 +7,7 @@ def update_protest_data():
     subprocess.run(["python3", "update_protest_data.py"])
 
 # 매일 오후 6시에 실행
-schedule.every().day.at("18:34").do(update_protest_data)
+schedule.every().day.at("14:23").do(update_protest_data)
 
 while True:
     schedule.run_pending()
