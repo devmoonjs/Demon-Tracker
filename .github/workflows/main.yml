@@ -24,6 +24,10 @@ jobs:
       - name: Login to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
+      
+      - name: Create .env file for Node
+        run: |
+          echo "${{ secrets.NODE_ENV_FILE }}" > ./node-app/.env
 
       - name: Build and Push Node and Python Docker Images (one ECR repo)
         run: |
